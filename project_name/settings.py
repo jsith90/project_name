@@ -1,6 +1,9 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -15,7 +18,7 @@ load_dotenv()
 SECRET_KEY = os.environ['SECRET_KEY_YO']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = int(os.environ.get("DEBUG", default=0))
 
 ALLOWED_HOSTS = []
 CSRF_TRUSTED_ORIGINS = []
@@ -30,6 +33,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "cloudinary",
     "shop",
     "whitenoise.runserver_nostatic",
 ]
@@ -129,3 +133,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# cloudinary
+cloudinary.config(
+    cloud_name = os.environ['CLOUD_NAME_YO'],
+    api_key = os.environ['API_KEY_YO'],
+    api_secret = os.environ['API_SECRET_YO'],
+)
+
