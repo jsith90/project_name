@@ -83,7 +83,7 @@ DATABASES = {
         # pguser 
         "USER": "postgres",
         # pgpassword - added to .env file
-        "PASSWORD": os.environ.get("DB_PASSWORD_YO"),
+        "PASSWORD": os.environ["DB_PASSWORD_YO"],
         # public networking in settings, looks like: junction.proxy.rlwy.net:46709
         "HOST": "junction.proxy.rlwy.net",
         # public networking in settings: looks like: junction.proxy.rlwy.net:46709
