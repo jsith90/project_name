@@ -22,7 +22,7 @@ endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
 def not_shipped_dash(request):
 	if request.user.is_authenticated and request.user.is_superuser:
-		orders = Order.objects.filter(shipped=False)
+		orders = Order.objects.filter(shipped=False, paid=True)
 		if request.POST:
 			status = request.POST['shipping_status']
 			num = request.POST['num']
@@ -245,12 +245,17 @@ def stripe_webhook(request):
 	except (ValueError, stripe.error.SignatureVerificationError) as e:
 		return HttpResponse(status=400)
 	# handle event
-	if event['type'] in ['payment_intent.created', 'charge.succeeded', 'charge.updated', 'payment_intent.succeeded']:
+	if event['type'] in ['payment_intent.created', 'charge.succeeded', 'charge.updated']:
+		return JsonResponse({'status': 'success'}, status=200)
+	elif event['type'] == 'payment_intent.succeeded':
+		payment_intent_id = event['data']['object']['id']
+		my_order = Order.objects.get(payment_intent_id=payment_intent_id)
+		my_order.paid = True
+		my_order.save()
 		return JsonResponse({'status': 'success'}, status=200)
 	else:
 		print(f'Unhandled event type: {event["type"]}')
 		return HttpResponse(status=400)
-
 
 # def customer(request):
 # 	if request.method == 'POST':
