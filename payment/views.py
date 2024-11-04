@@ -169,7 +169,8 @@ def billing_info(request):
             full_name=full_name, 
             email=email, 
             shipping_address=shipping_address, 
-            amount_paid=totals
+            amount_paid=totals,
+			payment_intent_id=intent.id,
         )
         create_order.save()
         order_id = create_order.pk
