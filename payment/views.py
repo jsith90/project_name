@@ -135,27 +135,34 @@ def billing_info(request):
             f"{my_shipping['shipping_country']}"
         )
 
-        # Retrieve or create Stripe customer
-        if hasattr(user, 'profile') and user.profile.stripe_customer_id:
-            customer_id = user.profile.stripe_customer_id
-            customer = stripe.Customer.retrieve(customer_id)
-        else:
-            customer = stripe.Customer.create(
-                name=f"{user.first_name} {user.last_name}",
-                email=user.email,
-            )
-            user.profile.stripe_customer_id = customer.id
-            user.profile.save()
+        if user.is_authenticated:
+            # Retrieve or create Stripe customer
+            if hasattr(user, 'profile') and user.profile.stripe_customer_id:
+                customer_id = user.profile.stripe_customer_id
+                customer = stripe.Customer.retrieve(customer_id)
+            else:
+                customer = stripe.Customer.create(
+                    name=f"{user.first_name} {user.last_name}",
+                    email=user.email,
+                )
+                user.profile.stripe_customer_id = customer.id
+                user.profile.save()
 
         # Create a PaymentIntent
         items = [{'id': product.id, 'quantity': quantities()[str(product.id)]} for product in cart_products()]
-        intent = stripe.PaymentIntent.create(
-            amount=calculate_order_amount(request, items),
-            currency='usd',
-            customer=customer.id,  # Associate the PaymentIntent with the Stripe customer
-            automatic_payment_methods={'enabled': True},
-            receipt_email=email,
-        )
+        intent_data = {
+            "amount": calculate_order_amount(request, items),
+            "currency": "usd",
+            "automatic_payment_methods": {"enabled": True},
+            "receipt_email": email,
+        }
+
+        # Conditionally add customer to the intent data if it exists
+        if user.is_authenticated and hasattr(customer, 'id'):
+            intent_data["customer"] = customer.id
+
+        # Create the PaymentIntent with the constructed data
+        intent = stripe.PaymentIntent.create(**intent_data)
 
         # Create the order in the database
         create_order = Order(
@@ -207,6 +214,7 @@ def billing_info(request):
     else:
         messages.error(request, 'Access Denied.')
         return redirect('index')
+
 
 
 def calculate_order_amount(request, items):
