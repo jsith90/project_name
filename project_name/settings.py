@@ -20,7 +20,7 @@ SECRET_KEY = os.environ['SECRET_KEY_YO']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get("DEBUG", default=0))
 
-ALLOWED_HOSTS = ["projectname-production.up.railway.app", "https://projectname-production.up.railway.app"]
+ALLOWED_HOSTS = ["projectname-production.up.railway.app", "https://projectname-production.up.railway.app", "127.0.0.1"]
 CSRF_TRUSTED_ORIGINS = ["https://projectname-production.up.railway.app"]
 
 
@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "cloudinary",
     "shop",
+    "payment",
+    "cart",
     "whitenoise.runserver_nostatic",
 ]
 
@@ -62,6 +64,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "cart.context_processors.cart",
             ],
         },
     },
@@ -140,4 +143,9 @@ cloudinary.config(
     api_key = os.environ['API_KEY_YO'],
     api_secret = os.environ['API_SECRET_YO'],
 )
+
+# Stripe keys
+STRIPE_SECRET_KEY = os.environ['STRIPE_SECRET_YO']
+STRIPE_PUBLIC_KEY = os.environ['STRIPE_PUBLIC_YO']
+STRIPE_WEBHOOK_SECRET = os.environ['STRIPE_ENDPOINT_YO']
 

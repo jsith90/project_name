@@ -1,0 +1,153 @@
+{% extends 'base.html' %} {% block content %}
+<!-- Header-->
+<header class="bg-dark py-5">
+  <div class="container px-4 px-lg-5 my-5">
+    <div class="text-center text-white">
+      <h1 class="display-4 fw-bolder">Billing Info</h1>
+      <p class="lead fw-normal text-white-50 mb-0">
+        Enter your payment info...
+      </p>
+    </div>
+  </div>
+</header>
+<br /><br /><br />
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <center>
+        <div class="card">
+          <div class="card-header">Order Summary</div>
+          <div class="card-body">
+            {% for product in cart_products %} Product: {{ product.name }}
+            <br />
+            {% if product.is_sale %} Price: ${{ product.sale_price }} {% else %}
+            Price: ${{ product.price }} {% endif %}
+            <br />
+            Quantity: 
+            {% for key, value in quantities.items %} 
+              {% if key == product.id|slugify %} 
+                {{ value }} 
+              {% endif %} 
+            {% endfor %}
+            <br />
+            <hr />
+            {% endfor %} Total: ${{ totals }}
+            <br />
+            <br />
+            <a
+              href="{% url 'cart_summary' %}"
+              class="btn btn-sm btn-outline-secondary"
+              >Update Items</a
+            >
+          </div>
+        </div>
+        <br /><br /><br />
+        <div class="card">
+          <div class="card-header">Shipping Info</div>
+            <div class="card-body">
+              Name: {{ shipping_info.shipping_full_name }}<br />
+              Email: {{ shipping_info.shipping_email}}<br />
+              Address 1: {{ shipping_info.shipping_address1 }}<br />
+              Address 2: {{ shipping_info.shipping_address2 }}<br />
+              City: {{ shipping_info.shipping_city }}<br />
+              Region: {{ shipping_info.shipping_region }}<br />
+              Postcode: {{ shipping_info.shipping_postcode }}<br />
+              Country: {{ shipping_info.shipping_country }} <br /><br />
+              <a href="{% url 'checkout' %}" class="btn btn-outline-secondary"
+                >Update Shipping</a
+              >
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="stripe-box">
+            <form id="payment-form" data-secret="{{ client_secret }}">
+                {% csrf_token %}
+                <div id="payment-element">
+                <!-- placeholder for Elements -->
+                </div>
+                <button class="payment-button" id="submit">Pay ${{ totals }}</button>
+                <div id="error-message">
+                <!-- Display error message to your customers here -->
+                </div>
+            </form>
+          </div>
+        </div>
+      </center>
+    </div>
+  </div>
+</div>
+<br><br><br><br>
+<script>
+  const stripe = Stripe('{{ STRIPE_PUBLIC_KEY }}');
+  const options = {
+      clientSecret: '{{ client_secret }}',
+      // Fully customizable with appearance API.
+      appearance: {
+          theme: 'flat'
+      },
+  };
+  console.log('Client Secret:', options.clientSecret); 
+
+
+  // Set up Stripe.js and Elements to use in checkout form, passing the client secret obtained in a previous step
+  const elements = stripe.elements(options);
+
+  // Create and mount the Payment Element
+  const paymentElement = elements.create('payment');
+  paymentElement.mount('#payment-element');
+
+  const form = document.getElementById('payment-form');
+
+  form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      // const modal = document.getElementById("myLoadingModal");
+      // modal.style.display = "flex";
+
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+      const {error} = await stripe.confirmPayment({
+          //`Elements` instance that was used to create the Payment Element
+          elements,
+          confirmParams: {
+            return_url: 'https://projectname-production.up.railway.app/payment/payment_success',
+          },
+          headers: {
+          'X-CSRFToken': csrftoken, // Include the CSRF token in the headers
+          }
+  });
+
+  if (error) {
+      // This point will only be reached if there is an immediate error when
+      // confirming the payment. Show error to your customer (for example, payment
+      // details incomplete)
+      const messageContainer = document.querySelector('#error-message');
+      messageContainer.textContent = error.message;
+  } else {
+      // Your customer will be redirected to your `return_url`. For some payment
+      // methods like iDEAL, your customer will be redirected to an intermediate
+      // site first to authorize the payment, then redirected to the `return_url`.
+  }
+  });
+
+  document.addEventListener("DOMContentLoaded", function() {
+  // Select all elements with the class 'value-quantity'
+  let valueQuantity = document.querySelectorAll(".value-quantity");
+
+      valueQuantity.forEach(function(value) {
+          // Check if the next sibling is not an <h3> element
+          if (!value.nextElementSibling || value.nextElementSibling.tagName !== 'H3') {
+              // Create an <h3> element
+              const h3Element = document.createElement('h3');
+              h3Element.textContent = '0'; // Set the text content to '0'
+
+              // Insert the <h3> element after the current element
+              value.insertAdjacentElement('afterend', h3Element);
+          }
+      });
+  });
+
+</script>
+{% endblock %}
+
+

@@ -1,0 +1,54 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container">
+  <div class="row">
+    <center>
+      <div class="col-8">
+        <br /><br />
+        <div class="card">
+          <div class="card-header">
+            Order {{ order.id }} - Total: ${{ order.amount_paid }}
+          </div>
+          <div class="card-body">
+            {% if order.date_shipped %}
+            <pre>Date Shipped: {{ order.date_shipped }}</pre>
+            <br />
+            {% else %}
+            <pre>Date Ordered: {{ order.date_ordered }}</pre>
+            <br />
+            {% endif %}
+            <pre>Customer Email: {{ order.email }}</pre>
+            <br />
+            <pre>{{ order.full_name }}</pre>
+            <pre>{{ order.shipping_address }}</pre>
+            <br />
+            {% for item in items %}
+            <pre>Item: {{ item.product }}
+    Quantity: {{ item.quantity }}
+    Price: ${{ item.price }}<br></pre>
+            {% endfor %} {% if not order.shipped %}
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="shipping_status" value="true" />
+              <button type="Submit" class="btn btn-success">
+                Mark As Shipped
+              </button>
+            </form>
+            {% else %}
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="shipping_status" value="false" />
+              <button type="Submit" class="btn btn-danger">
+                Mark As Unshipped
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        <br />
+        <a href="{% url 'home' %}" class="btn btn-primary">Home</a>
+      </div>
+    </center>
+  </div>
+</div>
+<br /><br /><br />
+{% endblock %}

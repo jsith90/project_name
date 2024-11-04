@@ -1,0 +1,14 @@
+{% extends 'base.html' %} {% load static %} {% block content %}
+<section class="form-section">
+  <header class="shop-header">
+    <div>
+      <h1 class="shop-heading">Create a New Product</h1>
+    </div>
+  </header>
+  <form class="product-form" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form">{{ product_form.as_p }}</div>
+    <button type="submit">Add Product</button>
+  </form>
+</section>
+{% endblock %}
